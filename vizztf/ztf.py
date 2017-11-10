@@ -1,4 +1,3 @@
-
 """Class implementation for ZTF Observing Strategy"""
 from __future__ import absolute_import, print_function, division
 import os
@@ -7,11 +6,12 @@ from matplotlib.patches import Polygon
 import numpy as np
 import pandas as pd
 import healpy as hp
+import sncosmo
+from astropy.cosmology import Planck15
 from astropy.time import Time, TimeDelta
 from opsimsummary import (AllSkySNVisualization, split_PolygonSegments,
                           convertToCelestialCoordinates, convertToSphericalCoordinates,
                           healpix_boundaries)
-
 __all__ = ['ztfbandcolors', 'ZTFSNViz']
 ztfbandcolors = dict(g='g', r='r', i='y')
 
@@ -126,3 +126,32 @@ class ZTFSNViz(AllSkySNVisualization):
         p = Polygon(xy, facecolor=facecolor, fill=True,
                     alpha=alpha, edgecolor=edgecolor, lw=0)
         return p
+
+    @staticmethod
+    def maglims(band):
+        """depth for bands"""
+        maglim = dict(g=22, r=22, i=22)
+        return maglim[band]
+
+    def scale_mags_size(self, mags, band):
+        """Size of points to be used in a scatter plot"""
+        return 0.1 * (self.maglims(band) - mags)
+
+    def generate_var_scatter(self, mjd, band, simsdf):
+        regband = 'sdss' + band
+        simsdf['time'] = mjd - simsdf.t0
+        simsdf = simsdf.query('time > -30 and time < 50')
+        model = sncosmo.Model(source='salt2')
+        x0 = np.zeros(len(simsdf))
+        mag = np.zeros(len(simsdf))
+        i = 0
+        for z, time in zip(simsdf.z.values, simsdf.time.values):
+            model.set(z=z)
+            model.set_source_peakabsmag(-19.3, 'bessellb', 'ab', cosmo=Planck15)
+            x0[i] = model.get('x0')
+            mag[i] = model.bandmag(time=time, band=regband, magsys='ab')
+            i += 1
+        simsdf['mag'] = mag
+        simsdf['x0'] = x0
+        simsdf['rad'] = self.scale_mags_size(simsdf.mag, band)
+        return simsdf
