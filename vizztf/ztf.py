@@ -2,7 +2,9 @@
 from __future__ import absolute_import, print_function, division
 import os
 import glob
+import logging
 from matplotlib.patches import Polygon
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import healpy as hp
@@ -14,6 +16,8 @@ from opsimsummary import (AllSkySNVisualization, split_PolygonSegments,
                           healpix_boundaries)
 __all__ = ['ztfbandcolors', 'ZTFSNViz']
 ztfbandcolors = dict(g='g', r='r', i='y')
+#logger = logging.getLogger(__name__)
+
 
 
 class ZTFSNViz(AllSkySNVisualization):
@@ -25,6 +29,7 @@ class ZTFSNViz(AllSkySNVisualization):
         AllSkySNVisualization.__init__(self, bandColorDict, radius_deg,
                                        showVisibleFields=showVisibleFields,
                                        showVarScatter=showVarScatter)
+        #self.logger = logging.getLogger('ztf')
         self.offset = offset
         if showVisibleFields:
             if data_dir is None:
@@ -138,6 +143,21 @@ class ZTFSNViz(AllSkySNVisualization):
         return 0.1 * (self.maglims(band) - mags)
 
     def generate_var_scatter(self, mjd, band, simsdf):
+        """use a simulated catalog of SN to generate the data
+        for a scatter plot of the SN
+        
+        Parameters
+        ----------
+        mjd : float, mandatory, units of days
+            modified julian day of observation
+        band : string, 
+            denoting bandpass filter used for observation
+        simsdf : `pd.DataFrame`
+            object containing catalog of simulated SN including all
+            SN to a redshift of 0.2 going off in the Northern Sky, their
+            redshifts `z`, locations in terms of `ra` and `dec` and peak
+            times `t_0`
+        """
         regband = 'sdss' + band
         simsdf['time'] = mjd - simsdf.t0
         simsdf = simsdf.query('time > -30 and time < 50')
@@ -155,3 +175,34 @@ class ZTFSNViz(AllSkySNVisualization):
         simsdf['x0'] = x0
         simsdf['rad'] = self.scale_mags_size(simsdf.mag, band)
         return simsdf
+
+    def generate_images_from(self, obsHistIDs, obsdf, snsims,
+                             savefig=False, outdir='./',
+                             rootname='ztf_obsHistID_'):
+        """
+        Conveniently generate a set of images
+        """
+        for obsHistID, row in obsdf.loc[obsHistIDs].iterrows():
+            mjd, ra, dec, band = row[['expMJD', 'fieldRA', 'fieldDec',
+                                      'filter']]
+            fname = os.path.join(outdir,
+                                 rootname +'{:06d}.png'.format(int(obsHistID)))
+            # Keep the image generation process in a try except block so that a
+            # failure does not derail the entire process.
+            try:
+                fig, ax = self.generate_image(ra=np.degrees(ra),
+                                              dec=np.degrees(dec),
+                                              radius_deg=4., mjd=mjd,
+                                              band=band, sndf=snsims) 
+                _ = fig.savefig(fname)
+                fig.clf()
+                plt.close()
+                logging.info('generated image for obsHistID {}'.format(obsHistID))
+            except:
+                logging.error('Failed to generate image for obsHistID {}'.format(obsHistID))
+
+
+        
+
+        
+                            
