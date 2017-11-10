@@ -23,10 +23,12 @@ ztfbandcolors = dict(g='g', r='r', i='y')
 class ZTFSNViz(AllSkySNVisualization):
     def __init__(self, bandColorDict=ztfbandcolors, radius_deg=4.,
                  showVisibleFields=False, showVarScatter=False,
+                 showMW=True,
                  # ztf variables
                  depths=None, data_dir=None, offset=0.):
 
         AllSkySNVisualization.__init__(self, bandColorDict, radius_deg,
+                                       showMW=True,
                                        showVisibleFields=showVisibleFields,
                                        showVarScatter=showVarScatter)
         #self.logger = logging.getLogger('ztf')
