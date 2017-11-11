@@ -193,10 +193,11 @@ class ZTFSNViz(AllSkySNVisualization):
             # Keep the image generation process in a try except block so that a
             # failure does not derail the entire process.
             try:
-                fig, ax = self.generate_image(ra=np.degrees(ra),
-                                              dec=np.degrees(dec),
-                                              radius_deg=4., mjd=mjd,
-                                              band=band, sndf=snsims) 
+                fig, ax, m, xx = self.generate_image(ra=np.degrees(ra),
+                                                     dec=np.degrees(dec),
+                                                     radius_deg=4., mjd=mjd,
+                                                     band=band, sndf=snsims,
+                                                     bg_color='b') 
                 _ = fig.savefig(fname)
                 fig.clf()
                 plt.close()
