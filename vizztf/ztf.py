@@ -24,6 +24,7 @@ class ZTFSNViz(AllSkySNVisualization):
     def __init__(self, bandColorDict=ztfbandcolors, radius_deg=4.,
                  showVisibleFields=False, showVarScatter=False,
                  showMW=True,
+                 colorCodeRedshifts=True,
                  # ztf variables
                  depths=None, data_dir=None, offset=0.):
 
@@ -175,7 +176,7 @@ class ZTFSNViz(AllSkySNVisualization):
             i += 1
         simsdf['mag'] = mag
         simsdf['x0'] = x0
-        simsdf['rad'] = self.scale_mags_size(simsdf.mag, band)
+        simsdf['area'] = self.scale_mags_size(simsdf.mag, band)
         return simsdf
 
     def generate_images_from(self, obsHistIDs, obsdf, snsims,
@@ -202,9 +203,3 @@ class ZTFSNViz(AllSkySNVisualization):
                 logging.info('generated image for obsHistID {}'.format(obsHistID))
             except:
                 logging.error('Failed to generate image for obsHistID {}'.format(obsHistID))
-
-
-        
-
-        
-                            
