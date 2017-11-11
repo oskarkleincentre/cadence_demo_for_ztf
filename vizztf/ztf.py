@@ -137,12 +137,12 @@ class ZTFSNViz(AllSkySNVisualization):
     @staticmethod
     def maglims(band):
         """depth for bands"""
-        maglim = dict(g=22, r=22, i=22)
+        maglim = dict(g=20.5, r=20.5, i=20.5)
         return maglim[band]
 
     def scale_mags_size(self, mags, band):
         """Size of points to be used in a scatter plot"""
-        return 0.1 * (self.maglims(band) - mags)
+        return 0.1 * (self.maglims(band) - mags)**2.0
 
     def generate_var_scatter(self, mjd, band, simsdf):
         """use a simulated catalog of SN to generate the data
