@@ -23,10 +23,12 @@ ztfbandcolors = dict(g='g', r='r', i='y')
 class ZTFSNViz(AllSkySNVisualization):
     def __init__(self, bandColorDict=ztfbandcolors, radius_deg=4.,
                  showVisibleFields=False, showVarScatter=False,
+                 showMW=True,
                  # ztf variables
                  depths=None, data_dir=None, offset=0.):
 
         AllSkySNVisualization.__init__(self, bandColorDict, radius_deg,
+                                       showMW=True,
                                        showVisibleFields=showVisibleFields,
                                        showVarScatter=showVarScatter)
         #self.logger = logging.getLogger('ztf')
@@ -135,12 +137,12 @@ class ZTFSNViz(AllSkySNVisualization):
     @staticmethod
     def maglims(band):
         """depth for bands"""
-        maglim = dict(g=22, r=22, i=22)
+        maglim = dict(g=20.5, r=20.5, i=20.5)
         return maglim[band]
 
     def scale_mags_size(self, mags, band):
         """Size of points to be used in a scatter plot"""
-        return 0.1 * (self.maglims(band) - mags)
+        return 0.1 * (self.maglims(band) - mags)**2.0
 
     def generate_var_scatter(self, mjd, band, simsdf):
         """use a simulated catalog of SN to generate the data
