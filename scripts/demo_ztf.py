@@ -198,7 +198,8 @@ if __name__=='__main__':
         simsdf = read_sim(sim_fname)
         ztfsky = ZTFSNViz(showVisibleFields=True, showVarScatter=True, showMW=True,
                           data_dir=ztf_fields)
-        ztfsky.generate_images_from(dfs[i].index.values, dfs[i], snsims=simsdf, savefig=True) 
+        ztfsky.generate_images_from(dfs[i].index.values, dfs[i], snsims=simsdf, savefig=True,
+                                    outdir=ztf_figs) 
         tsplitend = time.time()
         with open(logfname, mode='a+') as f:
             f.write('images generated at time {} \n'.format(tsplitend))
