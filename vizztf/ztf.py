@@ -208,17 +208,13 @@ class ZTFSNViz(AllSkySNVisualization):
         # This is where the timezone of Palomar has to be
         l = d.astimezone(pytz.timezone('US/Pacific'))
         label = l.strftime(format='%H:%M:%S')
-        return 'night = {:05d} '.format(night) + label 
+        return 'Night: {:05d}  Time:'.format(night) + label 
 
-    def _hack_legend(self, ax, colors, labels, bbox=(1, 2), loc='best')
-        x = []
-        for (c, l) in zip(colors, labels):
-            ax.hist(x, color=c, label=l)
-            ax.legend(loc=loc, bbox_to_anchor=bbox)
         
     def generate_images_from(self, obsHistIDs, obsdf, snsims, cmap=plt.cm.Reds,
-                             bg_color='b', vfcolor='k',
-                             mwColor='g', mwAlpha=1.0, mwLW=0., mwFill=True,
+                             bg_color='royalblue', vfcolor='k',
+                             mwColor='cornflowerblue', mwAlpha=1.0, mwLW=0.,
+                             mwFill=True, valpha=1.0,
                              savefig=False, outdir='./', surveystart=None,
                              rootname='ztf_obsHistID_'):
         """
@@ -242,10 +238,12 @@ class ZTFSNViz(AllSkySNVisualization):
                                                      sndf=snsims, cmap=cmap,
                                                      bg_color=bg_color,
                                                      vfcolor=vfcolor,
+                                                     alpha=valpha,
                                                      mwFill=mwFill,
                                                      mwColor=mwColor,
                                                      mwAlpha=mwAlpha,
-                                                     mwLW=mwLW) 
+                                                     mwLW=mwLW,
+                                                     loc='best') 
                 if savefig:
                     _ = fig.savefig(fname)
                     fig.clf()
