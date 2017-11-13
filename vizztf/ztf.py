@@ -143,7 +143,10 @@ class ZTFSNViz(AllSkySNVisualization):
 
     def scale_mags_size(self, mags, band):
         """Size of points to be used in a scatter plot"""
-        return 0.1 * (self.maglims(band) - mags)**2.0
+        x = (self.maglims(band) - mags)
+        y =  1.0 * x * x + 1.95
+        y[x < 0.] = 0.
+        return y
 
     def generate_var_scatter(self, mjd, band, simsdf):
         """use a simulated catalog of SN to generate the data
