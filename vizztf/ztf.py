@@ -11,6 +11,8 @@ import healpy as hp
 import sncosmo
 from astropy.cosmology import Planck15
 from astropy.time import Time, TimeDelta
+from datetime import datetime
+import pytz
 from opsimsummary import (AllSkySNVisualization, split_PolygonSegments,
                           convertToCelestialCoordinates, convertToSphericalCoordinates,
                           healpix_boundaries)
@@ -179,6 +181,38 @@ class ZTFSNViz(AllSkySNVisualization):
         simsdf['area'] = self.scale_mags_size(simsdf.mag, band)
         return simsdf
 
+    def label_time_image(self, mjd, surveystart=None):
+        """
+        Convert the mjd and a reference to the start of the survey 
+        to a string giving the night of the survey, and the
+        local time in the 24 format HH:MM:SS. If survestart is None,
+        return the mjd as a string
+
+        Parameters
+        ----------
+        mjd : MJD for the observation
+        surveystart : float, defaults to None
+            mjd for start of the survey
+
+        Returns
+        -------
+        label in the form of a string
+        """
+        if surveystart is None:
+            return 'MJD {:.5f}'.format(mjd)
+
+        diffs = mjd - surveystart
+        night = np.int(np.floor(diffs))
+
+        t = Time(mjd, format='mjd')
+        # The actual timezone here does not matter
+        d = t.to_datetime(timezone=pytz.timezone('US/Eastern'))
+        # This is where the timezone of Palomar has to be
+        l = d.astimezone(pytz.timezone('US/Pacific'))
+        label = l.strftime(format='%H:%M:%S')
+        return 'night = {:05d} '.format(night) + label 
+
+        
     def generate_images_from(self, obsHistIDs, obsdf, snsims,
                              savefig=False, outdir='./',
                              rootname='ztf_obsHistID_'):
