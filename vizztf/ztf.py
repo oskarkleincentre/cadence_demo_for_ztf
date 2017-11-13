@@ -11,12 +11,13 @@ import healpy as hp
 import sncosmo
 from astropy.cosmology import Planck15
 from astropy.time import Time, TimeDelta
+from datetime import datetime
+import pytz
 from opsimsummary import (AllSkySNVisualization, split_PolygonSegments,
                           convertToCelestialCoordinates, convertToSphericalCoordinates,
                           healpix_boundaries)
 __all__ = ['ztfbandcolors', 'ZTFSNViz']
 ztfbandcolors = dict(g='g', r='r', i='y')
-#logger = logging.getLogger(__name__)
 
 
 
@@ -29,10 +30,9 @@ class ZTFSNViz(AllSkySNVisualization):
                  depths=None, data_dir=None, offset=0.):
 
         AllSkySNVisualization.__init__(self, bandColorDict, radius_deg,
-                                       showMW=True,
+                                       showMW=showMW,
                                        showVisibleFields=showVisibleFields,
                                        showVarScatter=showVarScatter)
-        #self.logger = logging.getLogger('ztf')
         self.offset = offset
         if showVisibleFields:
             if data_dir is None:
@@ -179,12 +179,53 @@ class ZTFSNViz(AllSkySNVisualization):
         simsdf['area'] = self.scale_mags_size(simsdf.mag, band)
         return simsdf
 
-    def generate_images_from(self, obsHistIDs, obsdf, snsims,
-                             savefig=False, outdir='./',
+    def label_time_image(self, mjd, surveystart=None):
+        """
+        Convert the mjd and a reference to the start of the survey 
+        to a string giving the night of the survey, and the
+        local time in the 24 format HH:MM:SS. If survestart is None,
+        return the mjd as a string
+
+        Parameters
+        ----------
+        mjd : MJD for the observation
+        surveystart : float, defaults to None
+            mjd for start of the survey
+
+        Returns
+        -------
+        label in the form of a string
+        """
+        if surveystart is None:
+            return 'MJD {:.5f}'.format(mjd)
+
+        diffs = mjd - surveystart
+        night = np.int(np.floor(diffs))
+
+        t = Time(mjd, format='mjd')
+        # The actual timezone here does not matter
+        d = t.to_datetime(timezone=pytz.timezone('US/Eastern'))
+        # This is where the timezone of Palomar has to be
+        l = d.astimezone(pytz.timezone('US/Pacific'))
+        label = l.strftime(format='%H:%M:%S')
+        return 'night = {:05d} '.format(night) + label 
+
+    def _hack_legend(self, ax, colors, labels, bbox=(1, 2), loc='best')
+        x = []
+        for (c, l) in zip(colors, labels):
+            ax.hist(x, color=c, label=l)
+            ax.legend(loc=loc, bbox_to_anchor=bbox)
+        
+    def generate_images_from(self, obsHistIDs, obsdf, snsims, cmap=plt.cm.Reds,
+                             bg_color='b', vfcolor='k',
+                             mwColor='g', mwAlpha=1.0, mwLW=0., mwFill=True,
+                             savefig=False, outdir='./', surveystart=None,
                              rootname='ztf_obsHistID_'):
         """
         Conveniently generate a set of images
         """
+        if surveystart is None:
+            surveystart = obsdf.expMJD.min()
         for obsHistID, row in obsdf.loc[obsHistIDs].iterrows():
             mjd, ra, dec, band = row[['expMJD', 'fieldRA', 'fieldDec',
                                       'filter']]
@@ -196,11 +237,20 @@ class ZTFSNViz(AllSkySNVisualization):
                 fig, ax, m, xx = self.generate_image(ra=np.degrees(ra),
                                                      dec=np.degrees(dec),
                                                      radius_deg=4., mjd=mjd,
-                                                     band=band, sndf=snsims,
-                                                     bg_color='b') 
-                _ = fig.savefig(fname)
-                fig.clf()
-                plt.close()
+                                                     band=band,
+                                                     surveystart=surveystart,
+                                                     sndf=snsims, cmap=cmap,
+                                                     bg_color=bg_color,
+                                                     vfcolor=vfcolor,
+                                                     mwFill=mwFill,
+                                                     mwColor=mwColor,
+                                                     mwAlpha=mwAlpha,
+                                                     mwLW=mwLW) 
+                if savefig:
+                    _ = fig.savefig(fname)
+                    fig.clf()
+                    plt.close()
                 logging.info('generated image for obsHistID {}'.format(obsHistID))
-            except:
+            except Exception as e:
+                logging.error(traceback.format_exc())
                 logging.error('Failed to generate image for obsHistID {}'.format(obsHistID))
