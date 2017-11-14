@@ -13,6 +13,7 @@ from astropy.cosmology import Planck15
 from astropy.time import Time, TimeDelta
 from datetime import datetime
 import pytz
+import traceback
 from opsimsummary import (AllSkySNVisualization, split_PolygonSegments,
                           convertToCelestialCoordinates, convertToSphericalCoordinates,
                           healpix_boundaries)
