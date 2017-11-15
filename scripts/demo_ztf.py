@@ -45,9 +45,8 @@ if __name__=='__main__':
     print(opsimsummary.__VERSION__)
 
     startRow = 31349
-    startRow = 32077 
     numSplits = 16
-    numRows = 50
+    numRows = 1500
     ztf_data = '/home/rbisw/data/ZTF'
     scheduler_fname = os.path.join(ztf_data, 'test_schedule_v3.db')
     df = read_scheduler(scheduler_fname).loc[startRow : startRow + numRows]
